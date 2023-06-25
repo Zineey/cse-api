@@ -35,8 +35,9 @@ class GlobalMethods{
             $sys = $e->getMessage();
         }
         $stmt->closeCursor();
-        $status = array("code"=>$code,"remarks"=>$remarks,"message"=>$msg,"system"=>$sys);
-        return json_encode(array("status"=>$status,"payload"=>$data));
+        $status = array("rem"=>$remarks, "msg"=>$msg, "sys"=>$sys);
+        http_response_code($code);
+        return array("status"=>$status,"data"=>$data, "stamp"=>date_create(), "Developers"=>array("name"=>"John Carlo D. Ramos"));
     }
 
 }
