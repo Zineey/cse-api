@@ -19,23 +19,20 @@ class GlobalMethods{
         try{
             $stmt->execute();
             if($stmt->rowCount()>0){
-                if($res = $this->$stmt->fetchAll()){
-                    $data = $res;
+                if($res = $stmt->fetchAll()): $data = $res; endif;
                     $msg = "Successfully Retrieved data";
                     $code = 200;
+                    $res = null;
                     $remarks = "Success";      
                 }else{
                     $data = null;
                     $msg = "Unable to retrieve Data";
                     $sys = "";
                     $code = 400;
-                    $remarks = "Failed";
-                    $sql = "Call ".$proc."()";
-                    $stmt = $this->pdo->prepare($sql);
                 }
-            }
         }catch(\PDOException $e){
-
+            $code = 400;
+            $sys = $e->getMessage();
         }
         $stmt->closeCursor();
         $status = array("code"=>$code,"remarks"=>$remarks,"message"=>$msg,"system"=>$sys);
