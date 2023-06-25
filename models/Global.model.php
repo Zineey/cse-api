@@ -29,15 +29,22 @@ class GlobalMethods{
                     $msg = "Unable to retrieve Data";
                     $sys = "";
                     $code = 400;
+                     
                 }
         }catch(\PDOException $e){
             $code = 400;
             $sys = $e->getMessage();
         }
         $stmt->closeCursor();
-        $status = array("rem"=>$remarks, "msg"=>$msg, "sys"=>$sys);
+        $status = array("rem" => $remarks, "msg" => $msg, "sys" => $sys);
         http_response_code($code);
-        return array("status"=>$status,"data"=>$data, "stamp"=>date_create(), "Developers"=>array("name"=>"John Carlo D. Ramos"));
+        return json_encode(array(
+            "status" => $status,
+            "data" => $data,
+            "stamp" => date_create(),
+            "code" => $code,
+            "Developers" => array("name" => "John Carlo D. Ramos")
+        ));
     }
 
 }

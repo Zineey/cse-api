@@ -36,7 +36,6 @@ switch($_SERVER['REQUEST_METHOD']) {
     break;
 
     case 'POST':
-        if ($req[0]=='test'): var_dump("test"); endif;
         require_once($apiPath."/routes/Payroll.routes.php");
     break;
 
