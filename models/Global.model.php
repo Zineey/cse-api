@@ -15,11 +15,13 @@ Class GlobalMethods{
 
         if ($dt != null){
             $params = $dt->payload;
-            foreach ($params as $key => $value){
-                array_push($values, $value);
-                echo $values;
+            if (!empty($params)) {
+                foreach ($params as $key => $value) {
+                    array_push($values, $value);
+                }
+                $placeholder = implode(',', array_fill(0, count($values), '?'));
+                $sql = "CALL $proc($placeholder);";
             }
-            $sql = "CALL $proc(".str_repeat("?", count($values)-1)."?);";
         } else{
             $sql = "CALL $proc()";
         }
