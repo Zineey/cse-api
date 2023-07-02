@@ -1,92 +1,76 @@
 <?php
-class GlobalMethods{
-    protected $pdo;
-
-    public function __construct(\PDO $pdo)
-    {
+Class GlobalMethods{
+    
+    public function __construct(\PDO $pdo){
         $this->pdo = $pdo;
     }
 
-    public function callNoData($proc){
-        $data = null;
-        $msg = "Unable to retrieve Data";
-        $sys = "";
-        $code = 400;
-        $remarks = "Failed";
-        $sql = "CALL ".$proc."()";
-        $stmt = $this->pdo->prepare($sql);
-
-        try{
-            $stmt->execute();
-            if($stmt->rowCount()>0){
-                if($res = $stmt->fetchAll()): $data = $res; endif;
-                    $msg = "Successfully Retrieved data";
-                    $code = 200;
-                    $remarks = "Success";      
-                }else{
-                    $data = null;
-                    $msg = "Unable to retrieve Data";
-                    $sys = "";
-                    $code = 400;
-                     
-                }
-        }catch(\PDOException $e){
-            $code = 400;
-            $sys = $e->getMessage();
-        }
-        $stmt->closeCursor();
-        $status = array("rem" => $remarks, "msg" => $msg, "sys" => $sys);
-        http_response_code($code);
-        // return $data;
-        return array(
-            "status" => $status,
-            "data" => $data,
-            "stamp" => date_create(),
-            "code" => $code,
-            "Developers" => array("name" => "John Carlo D. Ramos"));
-    }
-
-    public function callWithData($proc, $dt){
-        $params = $dt->payload;
+    public function callRoutine($proc, $dt = null){
+        $params = null;
         $data = null;
         $msg = "Unable to process Data";
-        $sys = "";
-        $code = 0;
         $remarks = "Failed";
         $values = array();
+        $sql = '';
 
-        foreach($params as $key => $value){
-            array_push($values, $value);
-        }
-        $sql = "CALL $proc(".str_repeat("?", count($values)-1)."?);";
-        $stmt = $this->pdo->prepare($sql);
-        try {
-            $stmt->execute($values);
-            $data = $stmt->fetchAll();
-            if (count($data) > 0) {
-                $msg = "Successfully processed data";
-                $code = 200;
-                $remarks = "Success";
-            }else{
-                    $data = null;
-                    $msg = "Unable to process Data";
-                    $sys = "";
-                    $code = 400;
-                }
-        }catch(\PDOException $e){
-            $code = 400;
-            $sys = $e->getMessage();
+        if ($dt != null){
+            $params = $dt->payload;
+            foreach ($params as $key => $value){
+                array_push($values, $value);
+                echo $values;
             }
-        $stmt->closeCursor();
-        $status = array("rem" => $remarks, "msg" => $msg, "sys" => $sys);
-        http_response_code($code);
-        return array(
-            "status" => $status,
-            "data" => $data,
-            "stamp" => date_create(),
-            "code" => $code,
-            "Developers" => array("name" => "John Carlo D. Ramos"));
+            $sql = "CALL $proc(".str_repeat("?", count($values)-1)."?);";
+        } else{
+            $sql = "CALL $proc()";
+        }
+        $stmt = $this->pdo->prepare($sql);
+
+        try {
+            if (count($values) > 0) {
+                $stmt->execute($values);
+                if ($stmt->rowCount() > 0){
+                    if ($res = $stmt->fetchAll()): $data = $res; 
+                    endif;
+                    $stmt->closeCursor();
+                    $remarks = "Success";
+                    $msg = "Successfully Performed the request operation";
+                    $code = 200;
+                    return $this->response_payload($data, $remarks, $msg, $code);
+                }
+            } else{
+                $data = array();
+                if ($result = $this->pdo->query($sql)->fetchAll()){
+                    foreach($result as $record){
+                        array_push($data, $record);
+                    }
+                    $stmt->closeCursor();
+                    $remarks = "Success";
+                    $msg = "Successfully Performed the request operation";
+                    $code = 200;
+                    return $this->response_payload($data, $remarks, $msg, $code);
+                } else{
+                    $msg ="No Data Found";
+                    $code = 404;
+                }
+            }
+        } catch(\PDOException $e){
+            $msg = $e->getMessage();
+            $code = 403;
+            echo $e->getMessage();
+            return $this->response_payload(null, $remarks, $msg, $code);
+        }
     }
 
+    public function response_payload($payload, $remarks, $message, $code){
+        $status = array("remarks"=>$remarks, "message"=> $message);
+        http_response_code($code);
+        return array(
+            "status"=>$status,
+            "payload"=>$payload,
+            "timestamp" => date_create(),
+            "prepared_by" => "John Carlo D. Ramos"
+        );
+    }
 }
+
 ?>
